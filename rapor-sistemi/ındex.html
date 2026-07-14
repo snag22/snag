@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şirket Rapor Sistemi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+        h1 { color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        select, button { padding: 10px; margin: 5px; font-size: 16px; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #007bff; color: white; }
+        .filters { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Şirket Rapor Sistemi</h1>
+        
+        <div class="filters">
+            <label><strong>Kategori Seç:</strong></label><br>
+            <select id="kategori" onchange="kategoriDegisti()">
+                <option value="">-- Kategori Seç --</option>
+                <option value="satis">Satışlar</option>
+                <option value="stok">Stoklar</option>
+                <option value="musteri">Müşteri / Kullanıcı Bilgileri</option>
+            </select>
+
+            <br><br>
+            <label><strong>View Seç:</strong></label><br>
+            <select id="view" onchange="viewDegisti()">
+                <option value="">-- Önce Kategori Seç --</option>
+            </select>
+
+            <br><br>
+            <label><strong>İstediğin Kolonları Seç:</strong> (Ctrl ile birden fazla)</label><br>
+            <select id="kolonlar" multiple size="6" style="width: 400px;"></select>
+        </div>
+
+        <button onclick="raporGetir()">📊 Raporu Getir</button>
+        <button onclick="temizle()">Temizle</button>
+
+        <div id="sonuc" style="margin-top: 30px;"></div>
+    </div>
+
+    <script>
+        const viewData = {
+            satis: {
+                "vw_satislar": ["id", "tarih", "musteri_adi", "urun_adi", "miktar", "tutar", "tarih"],
+                "vw_gunluk_satis": ["tarih", "toplam_satis", "siparis_sayisi"]
+            },
+            stok: {
+                "vw_stok_durumu": ["urun_kodu", "urun_adi", "stok_miktari", "son_alim_tarihi", "kritik_seviye"],
+                "vw_stok_hareketleri": ["tarih", "urun_adi", "hareket_tipi", "miktar"]
+            },
+            musteri: {
+                "vw_musteriler": ["musteri_id", "ad_soyad", "telefon", "email", "toplam_harcama", "son_satis_tarihi"],
+                "vw_aktif_musteriler": ["ad_soyad", "son_satis", "toplam_siparis"]
+            }
+        };
+
+        function kategoriDegisti() {
+            const kategori = document.getElementById("kategori").value;
+            const viewSelect = document.getElementById("view");
+            viewSelect.innerHTML = '<option value="">-- View Seç --</option>';
+
+            if (kategori && viewData[kategori]) {
+                Object.keys(viewData[kategori]).forEach(view => {
+                    const opt = document.createElement("option");
+                    opt.value = view;
+                    opt.textContent = view;
+                    viewSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function viewDegisti() {
+            const kategori = document.getElementById("kategori").value;
+            const view = document.getElementById("view").value;
+            const kolonSelect = document.getElementById("kolonlar");
+            kolonSelect.innerHTML = "";
+
+            if (view && viewData[kategori] && viewData[kategori][view]) {
+                viewData[kategori][view].forEach(kolon => {
+                    const opt = document.createElement("option");
+                    opt.value = kolon;
+                    opt.textContent = kolon;
+                    kolonSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function raporGetir() {
+            const view = document.getElementById("view").value;
+            const secilenKolonlar = Array.from(document.getElementById("kolonlar").selectedOptions).map(opt => opt.value);
+
+            if (!view || secilenKolonlar.length === 0) {
+                alert("Lütfen view ve en az bir kolon seçin!");
+                return;
+            }
+
+            // Şimdilik sahte veri
+            let html = `<h2>${view} Raporu</h2>`;
+            html += `<p>Seçilen Kolonlar: ${secilenKolonlar.join(", ")}</p>`;
+            html += `<table><tr>`;
+
+            secilenKolonlar.forEach(k => {
+                html += `<th>${k}</th>`;
+            });
+            html += `</tr>`;
+
+            // 10 satır sahte veri
+            for (let i = 1; i <= 10; i++) {
+                html += `<tr>`;
+                secilenKolonlar.forEach(() => {
+                    html += `<td>Örnek Veri ${i}</td>`;
+                });
+                html += `</tr>`;
+            }
+            html += `</table>`;
+
+            document.getElementById("sonuc").innerHTML = html;
+        }
+
+        function temizle() {
+            document.getElementById("sonuc").innerHTML = "";
+        }
+    </script>
+</body>
+</html>
